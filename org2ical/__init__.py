@@ -54,7 +54,7 @@ def loads(
         # The replacement here is reversed to mitigate the time difference.
         dt = dt.replace(tzinfo=to_tz)
         dt = dt.astimezone(tz=from_tz)
-        return dt.strftime("%Y%m%dT%H%M%SZ")
+        return dt.strftime("%Y%m%dT%H%M%S")
 
     def _encode_date(d: Union[date, datetime], is_range_end=False) -> str:
         """Encodes a date or datetime object into an iCalendar-compatible
