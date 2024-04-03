@@ -18,6 +18,9 @@ TIMESTAMP = 'TIMESTAMP'
 CLOCK = 'CLOCK'
 # Ignore inactive timestamps
 
+todo_states = ['SOMEDAY', 'TODO', 'NEXT', 'STARTED', 'WAITING', 'SMALLTASK', 'IDEA', 'TOMEET', 'MEETING', 'TOPROCESS']
+done_states = ['DONE', 'DELEGATED', 'CANCELLED', 'PROCESSED', 'MET']
+
 
 def loads(
         org_str: str,
@@ -152,13 +155,17 @@ def loads(
     ical_entries = []
     now_str = _encode_datetime(now)
 
-    source = orgparse.loads(org_str)
+    env = orgparse.OrgEnv(filename=None, todos=todo_states, dones=done_states)
+    source = orgparse.loads(org_str, None, env=env)
     for node in source.root[1:]:  # [1:] for skipping root itself
         if _node_is_ignored(node):
             continue
         summary = node.heading
-        if node.priority:  # Restore priority removed by orgparse
-            summary = f"[{node.priority}] {summary}"
+        #if node.priority:  # Restore priority removed by orgparse
+        #    summary = f"[{node.priority}] {summary}"
+        summary = summary.strip()
+        if summary.startswith("[") and "]" in summary:
+            summary = summary[summary.index("]") + 1:].strip()
         description = node.body
         if description != "":
             description += "\n\n"
