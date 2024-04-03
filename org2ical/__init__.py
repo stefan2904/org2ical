@@ -30,6 +30,7 @@ def loads(
         include_types: Optional[Set[str]] = None,
         from_tz: timezone = timezone.utc,
         to_tz: timezone = timezone.utc,
+        just_entries: bool = False,
         ) -> Tuple[str, List[str]]:
     """Returns the generated ical string and a list of warnings."""
 
@@ -220,7 +221,11 @@ def loads(
                 assert d._repeater is None
 
     ical_entries_str = "".join(ical_entries).strip()
-    ical_str = f"""\
+    
+    if just_entries:
+        return ical_entries_str, warnings
+    else:
+        ical_str = f"""\
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:{prod_id}
