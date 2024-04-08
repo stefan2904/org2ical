@@ -9,6 +9,7 @@ import hashlib
 import textwrap
 from datetime import date, datetime, timezone, timedelta
 from typing import List, Optional, Set, Tuple, Union
+import re
 
 import orgparse
 
@@ -17,6 +18,7 @@ SCHEDULED = 'SCHEDULED'
 TIMESTAMP = 'TIMESTAMP'
 CLOCK = 'CLOCK'
 BIRTHDAY = 'BIRTHDAY'
+DIARY = 'DIARY'
 # Ignore inactive timestamps
 
 
@@ -66,7 +68,7 @@ END:VTIMEZONE"""
                    else {"ARCHIVE"})
     include_types = (include_types if include_types is not None
                      else {DEADLINE, SCHEDULED, TIMESTAMP})
-    diff = include_types - {DEADLINE, SCHEDULED, TIMESTAMP, CLOCK, BIRTHDAY}
+    diff = include_types - {DEADLINE, SCHEDULED, TIMESTAMP, CLOCK, BIRTHDAY, DIARY}
     todo_states = (todo_states if todo_states is not None
                    else ["TODO"])
     done_states = (done_states if done_states is not None
@@ -138,6 +140,34 @@ END:VTIMEZONE"""
         """Helper function for constructing warning messages."""
         return textwrap.dedent(
             f"""WARNING: {message} in node: `{_node_full_path(node)}`.""")
+
+    def _node_get_diaries(node: orgparse.OrgNode) -> List[str]:
+        diaries = []
+        # TODO: better error handling in case of malformed diary-float
+        if "<%%(diary-float" in node.heading:
+            d = re.findall(r'<%%\(diary-float\s+.*\)>', node.heading)[0]
+            diaries.append(d)
+        for line in node.body.split("\n"):
+            if line.strip().startswith("<%%(diary-float"):
+                d = re.findall(r'<%%\(diary-float\s+.*\)>', line)[0]
+                diaries.append(d)
+        return diaries
+
+    def _encode_diary_to_rrule(diary: str) -> str:
+        # <%%(diary-float t 2 2)>
+        m = re.search(r'<%%\(diary-float\s([t\+\-\d]*)\s([\+\-\d]*)\s([\+\-\d]*)\)>', diary)
+        if not m:
+            return None
+        month = m.group(1)
+        if month != "t":
+            # TODO: Implement non-montly diary-float
+            return None
+        weekday = m.group(2)
+        pos = m.group(3)
+        day = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"][int(weekday)]
+        # FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO;INTERVAL=1
+        return f"RRULE:FREQ=MONTHLY;BYSETPOS={pos};BYDAY={day};INTERVAL=1"
+
 
     def _construct_vevent(
             now: str,
@@ -266,6 +296,22 @@ END:VTIMEZONE"""
                 ical_entries.append(_construct_vevent(
                     now_str, start, None, '{} Birthday'.format(summary), description,
                     categories.union({BIRTHDAY}), rrule=rrule, is_dayevent=True))
+        if DIARY in include_types:
+            diaries = _node_get_diaries(node)
+            for diary in diaries:
+                rrule = _encode_diary_to_rrule(diary)
+                if not rrule:
+                    warnings.append(_construct_warning(
+                        node, f"Invalid diary-float"))
+                    continue
+                start = node.properties.get("CREATED")
+                start = start.strftime("%Y%m%d") if start else "19700101"
+                # TOOD: parse start/end-time from heading if it exists
+                entry = _construct_vevent(
+                    now_str, start, start, summary, description,
+                    categories.union({'REGULAR'}), rrule=rrule)
+                ical_entries.append(entry)
+
 
     ical_entries_str = "".join(ical_entries).strip()
     

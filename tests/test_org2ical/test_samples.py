@@ -115,3 +115,21 @@ def test_Birthday_tasks():
     ]
     compare(org_str, icals, include_types={"BIRTHDAY"})
 
+
+def test_diaryfloat_tasks():
+    org_str = textwrap.dedent("""\
+    * Calendar
+    ** Last Monday of every month
+      <%%(diary-float t 1 -1)>
+    ** Every 2nd Tuesday
+      <%%(diary-float t 2 2)>""")
+    
+    # FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO;INTERVAL=1
+    # FREQ=MONTHLY;BYSETPOS=2;BYDAY=TU;INTERVAL=1
+
+    icals = [
+        iCalEntry("1970-01-01", None, "Last Monday of every month", "  <%%(diary-float t 1 -1)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=MO;BYSETPOS=-1", parents=["Calendar"]),
+        iCalEntry("1970-01-01", None, "Every 2nd Tuesday",          "  <%%(diary-float t 2 2)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"]),
+    ]
+
+    compare(org_str, icals, include_types={"DIARY"})
