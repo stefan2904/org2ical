@@ -111,7 +111,7 @@ def test_Birthday_tasks():
     :END:
     """)
     icals = [
-        iCalEntry("1934-05-02", None, "Grandfather Birthday", '- Birthyear: 1934\n- Age this year: 87', "BIRTHDAY", "FREQ=YEARLY;INTERVAL=1", path=False),
+        iCalEntry("1934-05-02", None, "Grandfather Birthday", '- Birthyear: 1934\n- Age 2021: 87', "BIRTHDAY", "FREQ=YEARLY;INTERVAL=1", path=False),
     ]
     compare(org_str, icals, include_types={"BIRTHDAY"})
 

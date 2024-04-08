@@ -261,7 +261,7 @@ END:VTIMEZONE"""
                 #start = start.replace(year=now.year)
                 rrule = "RRULE:FREQ=YEARLY;INTERVAL=1"
                 bage = now.year - start.year
-                description = "- Birthyear: {}\n- Age this year: {}\n\n".format(start.year, bage)
+                description = "- Birthyear: {}\n- Age {}: {}\n\n".format(start.year, now.year, bage)
                 start = start.strftime("%Y%m%d")
                 ical_entries.append(_construct_vevent(
                     now_str, start, None, '{} Birthday'.format(summary), description,
