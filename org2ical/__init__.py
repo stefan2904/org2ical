@@ -321,7 +321,7 @@ END:VTIMEZONE"""
                         node, f"Invalid diary-float"))
                     continue
                 start = None #node.properties.get("CREATED")
-                start = start.strftime("%Y%m%d") if start else "19700101"
+                start = start.strftime("%Y%m%d") if start else "19850101"
                 
                 # parse start/end-time from heading if it exists
                 stime, etime, summary2 = _parse_diary_time(node.heading)
