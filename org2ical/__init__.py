@@ -16,6 +16,7 @@ DEADLINE = 'DEADLINE'
 SCHEDULED = 'SCHEDULED'
 TIMESTAMP = 'TIMESTAMP'
 CLOCK = 'CLOCK'
+BIRTHDAY = 'BIRTHDAY'
 # Ignore inactive timestamps
 
 
@@ -65,7 +66,7 @@ END:VTIMEZONE"""
                    else {"ARCHIVE"})
     include_types = (include_types if include_types is not None
                      else {DEADLINE, SCHEDULED, TIMESTAMP})
-    diff = include_types - {DEADLINE, SCHEDULED, TIMESTAMP, CLOCK}
+    diff = include_types - {DEADLINE, SCHEDULED, TIMESTAMP, CLOCK, BIRTHDAY}
     todo_states = (todo_states if todo_states is not None
                    else ["TODO"])
     done_states = (done_states if done_states is not None
@@ -250,6 +251,16 @@ END:VTIMEZONE"""
                     now_str, start, end, summary, description,
                     categories.union({CLOCK})))
                 assert d._repeater is None
+        if BIRTHDAY in include_types:
+            if node.properties.get("BIRTHDAY"):
+                start = node.properties.get("BIRTHDAY")
+                start = datetime.strptime(start, "%Y-%m-%d")
+                #start = start.replace(year=now.year)
+                rrule = "RRULE:FREQ=YEARLY;INTERVAL=1"
+                start = start.strftime("%Y%m%d")
+                ical_entries.append(_construct_vevent(
+                    now_str, start, start, '{} Birthday'.format(summary), description + " Birthday",
+                    categories.union({BIRTHDAY}), rrule=rrule))
 
     ical_entries_str = "".join(ical_entries).strip()
     
