@@ -321,10 +321,12 @@ END:VTIMEZONE"""
                 stime, etime, summary2 = _parse_diary_time(node.heading)
                 if stime:
                     startt = start + "T" + stime + "00Z"
+                    startt = _encode_datetime(datetime.strptime(startt, "%Y%m%dT%H%M%S%z"))
                 else:
                     startt = start
                 if etime:
                     endt = start + "T" + etime + "00Z"
+                    endt = _encode_datetime(datetime.strptime(endt, "%Y%m%dT%H%M%S%z"))
                 else:
                     endt = start
                 summary = summary2 if summary2 else summary
