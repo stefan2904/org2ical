@@ -18,6 +18,7 @@ class iCalEntry():
         *,
         parents: List[str] = None,
         path: bool = True,
+        path_override: str = None,
     ):
         self.dtstart = dtstart
         self.dtend = dtend
@@ -33,7 +34,7 @@ class iCalEntry():
         if self.description != "":
             self.description += "\n\n"
         if path:
-            self.description += "Org Path: " + " > ".join(parents + [self.summary])
+            self.description += "Org Path: " + " > ".join(parents + [path_override if path_override else self.summary])
 
 def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
         prod_id: str = "-//j3soon//org2ical//EN",

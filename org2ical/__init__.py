@@ -168,6 +168,16 @@ END:VTIMEZONE"""
         # FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO;INTERVAL=1
         return f"RRULE:FREQ=MONTHLY;BYSETPOS={pos};BYDAY={day};INTERVAL=1"
 
+    def _parse_diary_time(diary: str) -> Tuple[str, str, str]:
+        # 19:00-23:00 STG
+        m = re.search(r'(\d{2}:\d{2})-(\d{2}:\d{2}) (.*)', diary)
+        if m:
+            return m.group(1).replace(':', ''), m.group(2).replace(':', ''), m.group(3).strip()
+        m = re.search(r'(\d{2}:\d{2})', diary)
+        if m:
+            return m.group(1).replace(':', ''), None, m.group(3).strip()
+        return None, None, None
+
 
     def _construct_vevent(
             now: str,
@@ -306,9 +316,21 @@ END:VTIMEZONE"""
                     continue
                 start = None #node.properties.get("CREATED")
                 start = start.strftime("%Y%m%d") if start else "19700101"
-                # TOOD: parse start/end-time from heading if it exists
+                
+                # parse start/end-time from heading if it exists
+                stime, etime, summary2 = _parse_diary_time(node.heading)
+                if stime:
+                    startt = start + "T" + stime + "00Z"
+                else:
+                    startt = start
+                if etime:
+                    endt = start + "T" + etime + "00Z"
+                else:
+                    endt = start
+                summary = summary2 if summary2 else summary
+
                 entry = _construct_vevent(
-                    now_str, start, start, summary, description,
+                    now_str, startt, endt, summary, description,
                     categories.union({'REGULAR'}), rrule=rrule)
                 ical_entries.append(entry)
 

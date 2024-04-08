@@ -122,6 +122,8 @@ def test_diaryfloat_tasks():
     ** Last Monday of every month
       <%%(diary-float t 1 -1)>
     ** Every 2nd Tuesday
+      <%%(diary-float t 2 2)>
+    ** 19:00-23:00 STG
       <%%(diary-float t 2 2)>""")
     
     # FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO;INTERVAL=1
@@ -130,6 +132,7 @@ def test_diaryfloat_tasks():
     icals = [
         iCalEntry("1970-01-01", None, "Last Monday of every month", "  <%%(diary-float t 1 -1)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=MO;BYSETPOS=-1", parents=["Calendar"]),
         iCalEntry("1970-01-01", None, "Every 2nd Tuesday",          "  <%%(diary-float t 2 2)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"]),
+        iCalEntry("1970-01-01 19:00:00+00:00", "1970-01-01 23:00:00+00:00", "STG",          "  <%%(diary-float t 2 2)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"], path_override="19:00-23:00 STG"),
     ]
 
     compare(org_str, icals, include_types={"DIARY"})
