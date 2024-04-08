@@ -37,6 +37,7 @@ def loads(
         done_states: Optional[List[str]] = None,
         just_entries: bool = False,
         mytimezone: str = "",
+        mytimezoneid: str = "",
         ) -> Tuple[str, List[str]]:
     """Returns the generated ical string and a list of warnings."""
 
@@ -59,6 +60,10 @@ DTSTART:19961027T030000
 RRULE:FREQ=YEARLY;UNTIL=20361026T010000Z;BYDAY=-1SU;BYMONTH=10
 END:STANDARD
 END:VTIMEZONE"""
+
+    mytimezoneid = "Europe/Vienna"
+    
+    mytimezoneprefix = ";TZID:{}".format(mytimezoneid)
 
     categories = (categories if categories is not None
                   else set())
@@ -189,9 +194,10 @@ END:VTIMEZONE"""
             *,
             rrule: str = "",
             is_dayevent: bool = False,
+            tzprefix: str = ""
             ) -> str:
-        startutc = "DTSTART;VALUE=DATE:{}".format(startutc) if is_dayevent else "DTSTART:{}".format(startutc)
-        endutc = "DTEND:{}".format(endutc) if endutc else ''
+        startutc = "DTSTART{};VALUE=DATE:{}".format(tzprefix, startutc) if is_dayevent else "DTSTART{}:{}".format(tzprefix, startutc)
+        endutc = "DTEND{}:{}".format(tzprefix, endutc) if endutc else ''
         """Constructs an iCaldendar VEVENT entry string."""
         description = description.replace("\r\n", "\n").replace("\n", "\\n")
         entry_begin = f"""
@@ -321,19 +327,22 @@ END:VTIMEZONE"""
                 stime, etime, summary2 = _parse_diary_time(node.heading)
                 if stime:
                     startt = start + "T" + stime + "00"
-                    startt = _encode_datetime(datetime.strptime(startt, "%Y%m%dT%H%M%S"))
+                    #startt = _encode_datetime(datetime.strptime(startt, "%Y%m%dT%H%M%S"))
                 else:
                     startt = start
                 if etime:
                     endt = start + "T" + etime + "00"
-                    endt = _encode_datetime(datetime.strptime(endt, "%Y%m%dT%H%M%S"))
+                    #endt = _encode_datetime(datetime.strptime(endt, "%Y%m%dT%H%M%S"))
                 else:
                     endt = start
                 summary = summary2 if summary2 else summary
 
+                # repeated-dates without specific start-date are a bit annoying, 
+                # so we hardcode `mytimezoneprefix`
+
                 entry = _construct_vevent(
                     now_str, startt, endt, summary, description,
-                    categories.union({'REGULAR'}), rrule=rrule)
+                    categories.union({'REGULAR'}), rrule=rrule, tzprefix=mytimezoneprefix)
                 ical_entries.append(entry)
 
 
