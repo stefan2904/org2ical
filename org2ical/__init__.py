@@ -304,7 +304,7 @@ END:VTIMEZONE"""
                     warnings.append(_construct_warning(
                         node, f"Invalid diary-float"))
                     continue
-                start = node.properties.get("CREATED")
+                start = None #node.properties.get("CREATED")
                 start = start.strftime("%Y%m%d") if start else "19700101"
                 # TOOD: parse start/end-time from heading if it exists
                 entry = _construct_vevent(
