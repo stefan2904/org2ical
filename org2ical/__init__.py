@@ -148,7 +148,10 @@ END:VTIMEZONE"""
             categories: Set[str],
             *,
             rrule: str = "",
+            is_dayevent: bool = False,
             ) -> str:
+        startutc = "DTSTART;VALUE=DATE:{}".format(startutc) if is_dayevent else "DTSTART:{}".format(startutc)
+        endutc = "DTEND:{}".format(endutc) if endutc else ''
         """Constructs an iCaldendar VEVENT entry string."""
         description = description.replace("\r\n", "\n").replace("\n", "\\n")
         entry_begin = f"""
@@ -156,8 +159,8 @@ END:VTIMEZONE"""
         DTSTAMP:{now}
         """.strip()
         entry_mid = f"""
-        DTSTART:{startutc}
-        DTEND:{endutc}
+        {startutc}
+        {endutc}
         SUMMARY:{summary}
         DESCRIPTION:{description}
         CATEGORIES:{",".join(categories)}
@@ -205,11 +208,11 @@ END:VTIMEZONE"""
                     warnings.append(_construct_warning(
                         node, f"{SCHEDULED} keyword found but no timestamp"))
             if node.scheduled:
-                start = end = _encode_date(node.scheduled.start)
+                start = _encode_date(node.scheduled.start)
                 rrule = _encode_rrule(node.scheduled._repeater)
                 ical_entries.append(_construct_vevent(
-                    now_str, start, end, summary, description,
-                    categories.union({SCHEDULED}), rrule=rrule))
+                    now_str, start, None, summary, description,
+                    categories.union({SCHEDULED}), rrule=rrule, is_dayevent=True))
         if DEADLINE in include_types:
             n_deadline = node.body.count(DEADLINE)
             if n_deadline > 0:
@@ -220,19 +223,19 @@ END:VTIMEZONE"""
                     warnings.append(_construct_warning(
                         node, f"{DEADLINE} keyword found but no timestamp"))
             if node.deadline:
-                start = end = _encode_date(node.deadline.start)
+                start = _encode_date(node.deadline.start)
                 rrule = _encode_rrule(node.deadline._repeater)
                 ical_entries.append(_construct_vevent(
-                    now_str, start, end, summary, description,
-                    categories.union({DEADLINE}), rrule=rrule))
+                    now_str, start, None, summary, description,
+                    categories.union({DEADLINE}), rrule=rrule, is_dayevent=True))
         if TIMESTAMP in include_types:
             datelist = node.get_timestamps(active=True, point=True)
             for d in datelist:
-                start = end = _encode_date(d.start)
+                start = _encode_date(d.start)
                 rrule = _encode_rrule(d._repeater)
                 ical_entries.append(_construct_vevent(
-                    now_str, start, end, summary, description,
-                    categories.union({TIMESTAMP}), rrule=rrule))
+                    now_str, start, None, summary, description,
+                    categories.union({TIMESTAMP}), rrule=rrule, is_dayevent=True))
             rangelist = node.get_timestamps(active=True, range=True)
             for d in rangelist:
                 start = _encode_date(d.start)
@@ -259,8 +262,8 @@ END:VTIMEZONE"""
                 rrule = "RRULE:FREQ=YEARLY;INTERVAL=1"
                 start = start.strftime("%Y%m%d")
                 ical_entries.append(_construct_vevent(
-                    now_str, start, start, '{} Birthday'.format(summary), description + " Birthday",
-                    categories.union({BIRTHDAY}), rrule=rrule))
+                    now_str, start, None, '{} Birthday'.format(summary), description + " Birthday",
+                    categories.union({BIRTHDAY}), rrule=rrule, is_dayevent=True))
 
     ical_entries_str = "".join(ical_entries).strip()
     

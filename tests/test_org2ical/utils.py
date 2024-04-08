@@ -62,6 +62,7 @@ def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
     for component in cal.walk():
         if component.name == "VEVENT":
             print(f"[{i}]")
+            allDayEvent = 'VALUE' in component['dtstart'].params and component['dtstart'].params['VALUE'] == "DATE"
             # print("Expected:", str(component['dtstamp'].dt))
             # print("Actual  :", str(now))
             assert str(component['dtstamp'].dt) == str(now)
@@ -69,8 +70,9 @@ def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
             ical = icals[i]
             print("Expected:", ical.dtstart)
             print("Actual  :", str(component['dtstart'].dt))
-            print("Expected:", ical.dtend)
-            print("Actual  :", str(component['dtend'].dt))
+            if not allDayEvent:
+                print("Expected:", ical.dtend)
+                print("Actual  :", str(component['dtend'].dt))
             print("Expected:", ical.summary)
             print("Actual  :", component['summary'])
             print("Expected:", ical.description.encode())
@@ -78,7 +80,8 @@ def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
             print("Expected:", ical.categories)
             print("Actual  :", component['categories'].to_ical().decode("utf-8"))
             assert str(component['dtstart'].dt) == ical.dtstart
-            assert str(component['dtend'].dt) == ical.dtend
+            if not allDayEvent:
+                assert str(component['dtend'].dt) == ical.dtend
             assert component['summary'] == ical.summary
             assert component['description'] == ical.description
             assert component['categories'].to_ical().decode("utf-8") == ical.categories
