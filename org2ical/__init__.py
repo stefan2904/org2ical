@@ -320,13 +320,13 @@ END:VTIMEZONE"""
                 # parse start/end-time from heading if it exists
                 stime, etime, summary2 = _parse_diary_time(node.heading)
                 if stime:
-                    startt = start + "T" + stime + "00Z"
-                    startt = _encode_datetime(datetime.strptime(startt, "%Y%m%dT%H%M%S%z"))
+                    startt = start + "T" + stime + "00"
+                    startt = _encode_datetime(datetime.strptime(startt, "%Y%m%dT%H%M%S"))
                 else:
                     startt = start
                 if etime:
-                    endt = start + "T" + etime + "00Z"
-                    endt = _encode_datetime(datetime.strptime(endt, "%Y%m%dT%H%M%S%z"))
+                    endt = start + "T" + etime + "00"
+                    endt = _encode_datetime(datetime.strptime(endt, "%Y%m%dT%H%M%S"))
                 else:
                     endt = start
                 summary = summary2 if summary2 else summary
