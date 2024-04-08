@@ -62,8 +62,8 @@ END:STANDARD
 END:VTIMEZONE"""
 
     mytimezoneid = "Europe/Vienna"
-    
-    mytimezoneprefix = ";TZID:{}".format(mytimezoneid)
+
+    mytimezoneprefix = ";TZID={}".format(mytimezoneid)
 
     categories = (categories if categories is not None
                   else set())
