@@ -25,7 +25,7 @@ done_states = ['DONE', 'DELEGATED', 'CANCELLED', 'PROCESSED', 'MET']
 def loads(
         org_str: str,
         *,
-        prod_id: str = "-//j3soon//org2ical//EN",
+        prod_id: str = "-//stefan2904//org2ical//EN",
         now: datetime = datetime.now(tz=timezone.utc),
         categories: Optional[Set[str]] = None,
         ignore_states: Optional[Set[str]] = None,
