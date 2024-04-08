@@ -260,9 +260,11 @@ END:VTIMEZONE"""
                 start = datetime.strptime(start, "%Y-%m-%d")
                 #start = start.replace(year=now.year)
                 rrule = "RRULE:FREQ=YEARLY;INTERVAL=1"
+                bage = now.year - start.year
+                description = "- Birthyear: {}\n- Age this year: {}\n\n".format(start.year, bage)
                 start = start.strftime("%Y%m%d")
                 ical_entries.append(_construct_vevent(
-                    now_str, start, None, '{} Birthday'.format(summary), description + " Birthday",
+                    now_str, start, None, '{} Birthday'.format(summary), description,
                     categories.union({BIRTHDAY}), rrule=rrule, is_dayevent=True))
 
     ical_entries_str = "".join(ical_entries).strip()

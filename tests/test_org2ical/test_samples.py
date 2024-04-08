@@ -100,7 +100,7 @@ def test_Repeated_tasks():
     compare(org_str, icals)
 
 
-def test_Repeated_tasks():
+def test_Birthday_tasks():
     org_str = textwrap.dedent("""\
     * Contacts
     ** Grandfather
@@ -111,7 +111,7 @@ def test_Repeated_tasks():
     :END:
     """)
     icals = [
-        iCalEntry("1934-05-02", None, "Grandfather Birthday", "", "BIRTHDAY", "FREQ=YEARLY;INTERVAL=1", parents=["Contacts"]),
+        iCalEntry("1934-05-02", None, "Grandfather Birthday", '- Birthyear: 1934\n- Age this year: 87', "BIRTHDAY", "FREQ=YEARLY;INTERVAL=1", path=False),
     ]
     compare(org_str, icals, include_types={"BIRTHDAY"})
 
