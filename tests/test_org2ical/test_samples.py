@@ -98,3 +98,20 @@ def test_Repeated_tasks():
         iCalEntry("2019-04-05 08:00:00+00:00", None, "Wash my hands", "   Marking this DONE shifts the date to exactly one hour from now", "DEADLINE", "FREQ=HOURLY;INTERVAL=1", parents=["My Todos"]),
     ]
     compare(org_str, icals)
+
+
+def test_Repeated_tasks():
+    org_str = textwrap.dedent("""\
+    * Contacts
+    ** Grandfather
+    :PROPERTIES:
+    :CREATED:  [2021-04-18 Mon 15:09]
+    :BIRTHDAY: 1934-05-02
+    :ID:       bla
+    :END:
+    """)
+    icals = [
+        iCalEntry("1934-05-02", None, "Grandfather Birthday", "", "BIRTHDAY", "FREQ=YEARLY;INTERVAL=1", parents=["Contacts"]),
+    ]
+    compare(org_str, icals, include_types={"BIRTHDAY"})
+
