@@ -18,9 +18,6 @@ TIMESTAMP = 'TIMESTAMP'
 CLOCK = 'CLOCK'
 # Ignore inactive timestamps
 
-todo_states = ['SOMEDAY', 'TODO', 'NEXT', 'STARTED', 'WAITING', 'SMALLTASK', 'IDEA', 'TOMEET', 'MEETING', 'TOPROCESS']
-done_states = ['DONE', 'DELEGATED', 'CANCELLED', 'PROCESSED', 'MET']
-
 
 def loads(
         org_str: str,
@@ -33,9 +30,32 @@ def loads(
         include_types: Optional[Set[str]] = None,
         from_tz: timezone = timezone.utc,
         to_tz: timezone = timezone.utc,
+        todo_states: Optional[List[str]] = None,
+        done_states: Optional[List[str]] = None,
         just_entries: bool = False,
+        mytimezone: str = "",
         ) -> Tuple[str, List[str]]:
     """Returns the generated ical string and a list of warnings."""
+
+    mytimezone = """
+BEGIN:VTIMEZONE
+TZID:Europe/Vienna
+X-LIC-LOCATION:Europe/Vienna
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19810329T020000
+RRULE:FREQ=YEARLY;UNTIL=20370329T010000Z;BYDAY=-1SU;BYMONTH=3
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19961027T030000
+RRULE:FREQ=YEARLY;UNTIL=20361026T010000Z;BYDAY=-1SU;BYMONTH=10
+END:STANDARD
+END:VTIMEZONE"""
 
     categories = (categories if categories is not None
                   else set())
@@ -46,6 +66,10 @@ def loads(
     include_types = (include_types if include_types is not None
                      else {DEADLINE, SCHEDULED, TIMESTAMP})
     diff = include_types - {DEADLINE, SCHEDULED, TIMESTAMP, CLOCK}
+    todo_states = (todo_states if todo_states is not None
+                   else ["TODO"])
+    done_states = (done_states if done_states is not None
+                   else ["DONE"])
     if len(diff) > 0:
         raise ValueError(f"Invalid include_types: {diff}")
 
@@ -54,7 +78,7 @@ def loads(
         # The replacement here is reversed to mitigate the time difference.
         dt = dt.replace(tzinfo=to_tz)
         dt = dt.astimezone(tz=from_tz)
-        return dt.strftime("%Y%m%dT%H%M%S")
+        return dt.strftime("%Y%m%dT%H%M%SZ")
 
     def _encode_date(d: Union[date, datetime], is_range_end=False) -> str:
         """Encodes a date or datetime object into an iCalendar-compatible
@@ -235,25 +259,7 @@ def loads(
         ical_str = f"""\
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:{prod_id}
-BEGIN:VTIMEZONE
-TZID:Europe/Vienna
-X-LIC-LOCATION:Europe/Vienna
-BEGIN:DAYLIGHT
-TZOFFSETFROM:+0100
-TZOFFSETTO:+0200
-TZNAME:CEST
-DTSTART:19810329T020000
-RRULE:FREQ=YEARLY;UNTIL=20370329T010000Z;BYDAY=-1SU;BYMONTH=3
-END:DAYLIGHT
-BEGIN:STANDARD
-TZOFFSETFROM:+0200
-TZOFFSETTO:+0100
-TZNAME:CET
-DTSTART:19961027T030000
-RRULE:FREQ=YEARLY;UNTIL=20361026T010000Z;BYDAY=-1SU;BYMONTH=10
-END:STANDARD
-END:VTIMEZONE
+PRODID:{prod_id}{mytimezone}
 {ical_entries_str}
 END:VCALENDAR
 """
