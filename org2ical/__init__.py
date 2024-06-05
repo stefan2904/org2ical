@@ -154,13 +154,29 @@ END:VTIMEZONE"""
             diaries.append(d)
         for line in node.body.split("\n"):
             if line.strip().startswith("<%%(diary-float"):
-                d = re.findall(r'<%%\(diary-float\s+.*\)>', line)[0]
-                diaries.append(d)
+                # with time in title (so not in the diary-float sexp)
+                d = re.findall(r'<%%\(diary-float\s+.*\)>', line)
+                if len(d) == 1:
+                    diaries.append(d[0])
+                elif len(d) > 1:
+                    warnings.append(_construct_warning(
+                        node, f"Invalid diary-float in body 1: too many matches"))
+                    
+                # with inline time (new in org 9.7)
+                # <%%(diary-float t 2 2) 19:00>
+                # <%%(diary-float t 2 2) 19:00-23:00>
+                d = re.findall(r'(<%%\(diary-float\s+.*\)\s+\d?\d:\d\d(-\d?\d:\d\d)?>)', line)
+                if len(d) == 1:
+                    diaries.append(d[0][0]) # findall returns the captured groups as tuple, and we want the first group
+                elif len(d) > 1:
+                    warnings.append(_construct_warning(
+                        node, f"Invalid diary-float in body 2: too many matches"))
+
         return diaries
 
     def _encode_diary_to_rrule(diary: str) -> str:
         # <%%(diary-float t 2 2)>
-        m = re.search(r'<%%\(diary-float\s([t\+\-\d]*)\s([\+\-\d]*)\s([\+\-\d]*)\)>', diary)
+        m = re.search(r'<%%\(diary-float\s([t\+\-\d]*)\s([\+\-\d]*)\s([\+\-\d]*)\)\s*(\d?\d:\d\d)?(-(\d?\d:\d\d))?>', diary)
         if not m:
             return None
         month = m.group(1)
@@ -173,15 +189,24 @@ END:VTIMEZONE"""
         # FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO;INTERVAL=1
         return f"RRULE:FREQ=MONTHLY;BYSETPOS={pos};BYDAY={day};INTERVAL=1"
 
-    def _parse_diary_time(diary: str) -> Tuple[str, str, str]:
+    def _parse_diary_time(diary: str, node: orgparse.OrgNode) -> Tuple[str, str, str]:
+        cleantime = lambda x: x.replace(':', '').replace('-', '') if x else None
+
+        # time in sexp:
+        m = re.search(r'<%%\(diary-float\s([t\+\-\d]*)\s([\+\-\d]*)\s([\+\-\d]*)\)\s*(\d?\d:\d\d)?(-(\d?\d:\d\d))?>', diary)
+        if m and m.group(4):
+            return cleantime(m.group(4)), cleantime(m.group(6)), node.heading.strip()
+
+        # time in title:
         # 19:00-23:00 STG
-        m = re.search(r'(\d{2}:\d{2})-(\d{2}:\d{2}) (.*)', diary)
+        m = re.search(r'(\d{2}:\d{2})-(\d{2}:\d{2}) (.*)', node.heading)
         if m:
-            return m.group(1).replace(':', ''), m.group(2).replace(':', ''), m.group(3).strip()
-        m = re.search(r'(\d{2}:\d{2})', diary)
+            return cleantime(m.group(1)), cleantime(m.group(2)), m.group(3).strip()
+        m = re.search(r'(\d{2}:\d{2})', node.heading)
         if m:
-            return m.group(1).replace(':', ''), None, m.group(3).strip()
-        return None, None, None
+            return cleantime(m.group(1)), None, m.group(3).strip()
+        
+        return None, None, None # stime, etime, summary2
 
 
     def _construct_vevent(
@@ -324,7 +349,7 @@ END:VTIMEZONE"""
                 start = start.strftime("%Y%m%d") if start else "19850101"
                 
                 # parse start/end-time from heading if it exists
-                stime, etime, summary2 = _parse_diary_time(node.heading)
+                stime, etime, summary2 = _parse_diary_time(diary, node)
                 if stime:
                     startt = start + "T" + stime + "00"
                     #startt = _encode_datetime(datetime.strptime(startt, "%Y%m%dT%H%M%S"))
