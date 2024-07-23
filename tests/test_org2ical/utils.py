@@ -22,8 +22,8 @@ class iCalEntry():
     ):
         self.dtstart = dtstart
         self.dtend = dtend
-        if self.dtend is None:
-            self.dtend = self.dtstart
+        #if self.dtend is None:
+        #    self.dtend = self.dtstart
         self.summary = summary
         self.description = description
         self.categories = categories
@@ -65,17 +65,17 @@ def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
     for component in cal.walk():
         if component.name == "VEVENT":
             print(f"[{i}]")
-            allDayEvent = 'VALUE' in component['dtstart'].params and component['dtstart'].params['VALUE'] == "DATE"
+            #allDayEvent = 'VALUE' in component['dtstart'].params and component['dtstart'].params['VALUE'] == "DATE"
             # print("Expected:", str(component['dtstamp'].dt))
             # print("Actual  :", str(now))
             assert str(component['dtstamp'].dt) == str(now)
             assert component['uid'] != ""
             ical = icals[i]
-            print("Expected:", ical.dtstart)
-            print("Actual  :", str(component['dtstart'].dt))
-            if not allDayEvent:
-                print("Expected:", ical.dtend)
-                print("Actual  :", str(component['dtend'].dt))
+            print("Expected Start:", ical.dtstart)
+            print("Actual   Start:", str(component['dtstart'].dt))
+            if ical.dtend:
+                print("Expected End:  ", ical.dtend)
+                print("Actual   End:  ", str(component['dtend'].dt if 'dtend' in component else 'None'))
             print("Expected:", ical.summary)
             print("Actual  :", component['summary'])
             print("Expected:", ical.description.encode())
@@ -83,7 +83,8 @@ def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
             print("Expected:", ical.categories)
             print("Actual  :", component['categories'].to_ical().decode("utf-8"))
             assert str(component['dtstart'].dt) == ical.dtstart
-            if not allDayEvent:
+            if ical.dtend: # end time expected
+                assert 'dtend' in component
                 assert str(component['dtend'].dt) == ical.dtend
             assert component['summary'] == ical.summary
             assert component['description'] == ical.description

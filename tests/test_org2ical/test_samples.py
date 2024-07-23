@@ -42,9 +42,9 @@ def test_Timestamps():
       [2006-11-01 Wed]
     """)
     icals = [
-        iCalEntry("2006-11-01 19:15:00+00:00", None, "Meet Peter at the movies", "  <2006-11-01 Wed 19:15>", "TIMESTAMP"),
+        iCalEntry("2006-11-01 19:15:00+00:00", "2006-11-01 20:15:00+00:00", "Meet Peter at the movies", "  <2006-11-01 Wed 19:15>", "TIMESTAMP"),
         iCalEntry("2006-11-02 20:00:00+00:00", "2006-11-02 22:00:00+00:00", "Discussion on climate change", "  <2006-11-02 Thu 20:00-22:00>", "TIMESTAMP"),
-        iCalEntry("2007-05-16 12:30:00+00:00", None, "Pick up Sam at school", "  <2007-05-16 Wed 12:30 +1w>", "TIMESTAMP", "FREQ=WEEKLY;INTERVAL=1"),
+        iCalEntry("2007-05-16 12:30:00+00:00", "2007-05-16 13:30:00+00:00", "Pick up Sam at school", "  <2007-05-16 Wed 12:30 +1w>", "TIMESTAMP", "FREQ=WEEKLY;INTERVAL=1"),
         iCalEntry("2004-08-23", "2004-08-27", "Meeting in Amsterdam", "   <2004-08-23 Mon>--<2004-08-26 Thu>", "TIMESTAMP", parents=["Meetings"]),
     ]
     compare(org_str, icals)
@@ -134,13 +134,12 @@ def test_diaryfloat_tasks():
     # FREQ=MONTHLY;BYSETPOS=2;BYDAY=TU;INTERVAL=1
 
     # new diary-float syntax since org 9.7: https://orgmode.org/Changes.html#org5446bd7
-    # TODO: figure out how to deal with entries without end-time 
 
     icals = [
         iCalEntry("1985-01-01", None, "Last Monday of every month", "  <%%(diary-float t 1 -1)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=MO;BYSETPOS=-1", parents=["Calendar"]),
         iCalEntry("1985-01-01", None, "Every 2nd Tuesday",          "  <%%(diary-float t 2 2)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"]),
         iCalEntry("1985-01-01 19:00:00+01:00", "1985-01-01 23:00:00+01:00", "STG",          "  <%%(diary-float t 2 2)>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"], path_override="19:00-23:00 STG"),
-        iCalEntry("1985-01-01 19:00:00+01:00", "1985-01-01", "STG2",          "  <%%(diary-float t 2 2) 19:00>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"]),
+        iCalEntry("1985-01-01 19:00:00+01:00", "1985-01-01 20:00:00+01:00", "STG2",          "  <%%(diary-float t 2 2) 19:00>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"]),
         iCalEntry("1985-01-01 19:00:00+01:00", "1985-01-01 23:00:00+01:00", "STG3",          "  <%%(diary-float t 2 2) 19:00-23:00>", "REGULAR", "FREQ=MONTHLY;INTERVAL=1;BYDAY=TU;BYSETPOS=2", parents=["Calendar"]),
     ]
 
