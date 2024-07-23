@@ -302,11 +302,13 @@ END:VTIMEZONE"""
         if TIMESTAMP in include_types:
             datelist = node.get_timestamps(active=True, point=True)
             for d in datelist:
+                is_dayevent = type(d.start) == date
                 start = _encode_date(d.start)
+                end = _encode_date(d.start + timedelta(hours=1)) if not is_dayevent else None
                 rrule = _encode_rrule(d._repeater)
                 ical_entries.append(_construct_vevent(
-                    now_str, start, None, summary, description,
-                    categories.union({TIMESTAMP}), rrule=rrule, is_dayevent=True))
+                    now_str, start, end, summary, description,
+                    categories.union({TIMESTAMP}), rrule=rrule, is_dayevent=is_dayevent))
             rangelist = node.get_timestamps(active=True, range=True)
             for d in rangelist:
                 start = _encode_date(d.start)
@@ -346,7 +348,7 @@ END:VTIMEZONE"""
                         node, f"Invalid diary-float"))
                     continue
                 start = None #node.properties.get("CREATED")
-                start = start.strftime("%Y%m%d") if start else "19850101"
+                start = start.strftime("%Y%m%d") if start else "19850101" # diary-sexp without explicit start date → start at beginning of time
                 
                 # parse start/end-time from heading if it exists
                 stime, etime, summary2 = _parse_diary_time(diary, node)
@@ -358,6 +360,11 @@ END:VTIMEZONE"""
                 if etime:
                     endt = start + "T" + etime + "00"
                     #endt = _encode_datetime(datetime.strptime(endt, "%Y%m%dT%H%M%S"))
+                elif stime:
+                    # parse start into datetime
+                    startts = datetime.strptime(stime, "%H%M")
+                    etime = (startts + timedelta(hours=1)).strftime("%H%M")
+                    endt = start + "T" + etime + "00"
                 else:
                     endt = start
                 summary = summary2 if summary2 else summary
