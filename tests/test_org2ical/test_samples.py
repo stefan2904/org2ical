@@ -40,12 +40,24 @@ def test_Timestamps():
        <2004-08-23 Mon>--<2004-08-26 Thu>
     * Gillian comes late for the fifth time
       [2006-11-01 Wed]
+    * Test day  <2025-02-05 Wed>
+    * Test time  <2025-02-05 Wed 09:30>
+    * Test duration <2025-02-05 Wed 09:30-11:30>
+    * Test time2  <2025-02-05 Wed 9:30>
+    * Test duration2 <2025-02-05 Wed 9:30-11:30>
+    * Test duration3 <2025-02-05 Wed 8:30-9:30>
     """)
     icals = [
         iCalEntry("2006-11-01 19:15:00+00:00", "2006-11-01 20:15:00+00:00", "Meet Peter at the movies", "  <2006-11-01 Wed 19:15>", "TIMESTAMP"),
         iCalEntry("2006-11-02 20:00:00+00:00", "2006-11-02 22:00:00+00:00", "Discussion on climate change", "  <2006-11-02 Thu 20:00-22:00>", "TIMESTAMP"),
         iCalEntry("2007-05-16 12:30:00+00:00", "2007-05-16 13:30:00+00:00", "Pick up Sam at school", "  <2007-05-16 Wed 12:30 +1w>", "TIMESTAMP", "FREQ=WEEKLY;INTERVAL=1"),
         iCalEntry("2004-08-23", "2004-08-27", "Meeting in Amsterdam", "   <2004-08-23 Mon>--<2004-08-26 Thu>", "TIMESTAMP", parents=["Meetings"]),
+        iCalEntry("2025-02-05", None, "Test day  <2025-02-05 Wed>", "", "TIMESTAMP", path_override="Test day  <2025-02-05 Wed>"),
+        iCalEntry("2025-02-05 09:30:00+00:00", "2025-02-05 10:30:00+00:00", "Test time  <2025-02-05 Wed 09:30>", "", "TIMESTAMP", path_override="Test time  <2025-02-05 Wed 09:30>"),
+        iCalEntry("2025-02-05 09:30:00+00:00", "2025-02-05 11:30:00+00:00", "Test duration <2025-02-05 Wed 09:30-11:30>", "", "TIMESTAMP", path_override="Test duration <2025-02-05 Wed 09:30-11:30>"),
+        iCalEntry("2025-02-05 09:30:00+00:00", "2025-02-05 10:30:00+00:00", "Test time2  <2025-02-05 Wed 09:30>", "", "TIMESTAMP", path_override="Test time2  <2025-02-05 Wed 09:30>"),
+        iCalEntry("2025-02-05 09:30:00+00:00", "2025-02-05 11:30:00+00:00", "Test duration2 <2025-02-05 Wed 09:30-11:30>", "", "TIMESTAMP", path_override="Test duration2 <2025-02-05 Wed 09:30-11:30>"),
+        iCalEntry("2025-02-05 08:30:00+00:00", "2025-02-05 09:30:00+00:00", "Test duration3 <2025-02-05 Wed 08:30-09:30>", "", "TIMESTAMP", path_override="Test duration3 <2025-02-05 Wed 08:30-09:30>"),
     ]
     compare(org_str, icals)
 
