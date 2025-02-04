@@ -80,6 +80,26 @@ END:VTIMEZONE"""
                    else ["DONE"])
     if len(diff) > 0:
         raise ValueError(f"Invalid include_types: {diff}")
+    
+    def _fix_time_format(text: str) -> str:
+        # Define a regex pattern to match date and time formats like <YYYY-MM-DD DDD H:MM> or <YYYY-MM-DD DDD H:MM-H:MM>
+        pattern = re.compile(r'<(\d{4}-\d{2}-\d{2} \w{3}) (\d{1,2}:\d{2})(-(\d{1,2}:\d{2}))?>')
+        
+        def replacer(match):
+            # Extract the date and time parts from the match
+            date_part = match.group(1)
+            start_time = match.group(2)
+            end_time = match.group(4)
+            
+            # Ensure leading zero for single-digit hours
+            fixed_start = start_time.zfill(5)
+            fixed_end = end_time.zfill(5) if end_time else ''
+            
+            # Reconstruct the formatted time string
+            return f'<{date_part} {fixed_start}{"-" + fixed_end if fixed_end else ""}>'
+        
+        # Substitute all occurrences of the pattern in the input text
+        return pattern.sub(replacer, text)
 
     def _encode_datetime(dt: datetime) -> str:
         """Encodes a datetime object into an iCalendar-compatible string."""
@@ -254,6 +274,7 @@ END:VTIMEZONE"""
     ical_entries = []
     now_str = _encode_datetime(now)
 
+    org_str = _fix_time_format(org_str) # fix (active) timestamps without leading zero
     env = orgparse.OrgEnv(filename=None, todos=todo_states, dones=done_states)
     source = orgparse.loads(org_str, None, env=env)
     for node in source.root[1:]:  # [1:] for skipping root itself
