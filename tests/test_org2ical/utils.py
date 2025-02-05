@@ -19,6 +19,7 @@ class iCalEntry():
         parents: List[str] = None,
         path: bool = True,
         path_override: str = None,
+        location: str = None,
     ):
         self.dtstart = dtstart
         self.dtend = dtend
@@ -35,6 +36,7 @@ class iCalEntry():
             self.description += "\n\n"
         if path:
             self.description += "Org Path: " + " > ".join(parents + [path_override if path_override else self.summary])
+        self.location = location
 
 def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
         prod_id: str = "-//j3soon//org2ical//EN",
@@ -76,6 +78,10 @@ def compare(org_str: str, icals: List[iCalEntry], warnings=[], *,
             if ical.dtend:
                 print("Expected End:  ", ical.dtend)
                 print("Actual   End:  ", str(component['dtend'].dt if 'dtend' in component else 'None'))
+            if 'location' in component:
+                print("Actual Location:    ", component['location'])
+                print("Expected Location:  ", ical.location)
+                assert component['location'] == ical.location
             print("Expected:", ical.summary)
             print("Actual  :", component['summary'])
             print("Expected:", ical.description.encode())

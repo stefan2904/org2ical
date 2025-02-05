@@ -156,3 +156,27 @@ def test_diaryfloat_tasks():
     ]
 
     compare(org_str, icals, include_types={"DIARY"})
+
+
+def test_location_properties():
+    org_str = textwrap.dedent("""\
+    * Test day  <2025-02-05 Wed>
+    :PROPERTIES:
+    :LOCATION: Gösser Bräu Graz, Neutorgasse 48, A-8010 Graz
+    :END:
+    * Test time  <2025-02-05 Wed 09:30>
+    :PROPERTIES:
+    :LOCATION: Gösser Bräu Graz, Neutorgasse 48, A-8010 Graz
+    :END:
+    * Test duration <2025-02-05 Wed 09:30-11:30>
+    :PROPERTIES:
+    :LOCATION: Gösser Bräu Graz, Neutorgasse 48, A-8010 Graz
+    :END:
+    """)
+    icals = [
+        iCalEntry("2025-02-05", None, "Test day  <2025-02-05 Wed>", "", "TIMESTAMP", path_override="Test day  <2025-02-05 Wed>", location="Gösser Bräu Graz, Neutorgasse 48, A-8010 Graz"),
+        iCalEntry("2025-02-05 09:30:00+00:00", "2025-02-05 10:30:00+00:00", "Test time  <2025-02-05 Wed 09:30>", "", "TIMESTAMP", path_override="Test time  <2025-02-05 Wed 09:30>", location="Gösser Bräu Graz, Neutorgasse 48, A-8010 Graz"),
+        iCalEntry("2025-02-05 09:30:00+00:00", "2025-02-05 11:30:00+00:00", "Test duration <2025-02-05 Wed 09:30-11:30>", "", "TIMESTAMP", path_override="Test duration <2025-02-05 Wed 09:30-11:30>", location="Gösser Bräu Graz, Neutorgasse 48, A-8010 Graz"),
+
+    ]
+    compare(org_str, icals)
