@@ -239,7 +239,8 @@ END:VTIMEZONE"""
             *,
             rrule: str = "",
             is_dayevent: bool = False,
-            tzprefix: str = ""
+            tzprefix: str = "",
+            location: str,
             ) -> str:
         startutc = "DTSTART{};VALUE=DATE:{}".format(tzprefix, startutc) if is_dayevent else "DTSTART{}:{}".format(tzprefix, startutc)
         endutc = "DTEND{}:{}".format(tzprefix, endutc) if endutc else ''
@@ -257,6 +258,7 @@ END:VTIMEZONE"""
         CATEGORIES:{",".join(categories)}
         {rrule}
         """.strip()
+        entry_mid = "{}\n        LOCATION:{}".format(entry_mid, location) if location else entry_mid
         entry_end = """
         END:VEVENT
         """.strip()
@@ -281,6 +283,7 @@ END:VTIMEZONE"""
         if _node_is_ignored(node):
             continue
         summary = node.heading
+        location = node.get_property('LOCATION')
         #if node.priority:  # Restore priority removed by orgparse
         #    summary = f"[{node.priority}] {summary}"
         summary = summary.strip()
@@ -304,7 +307,7 @@ END:VTIMEZONE"""
                 rrule = _encode_rrule(node.scheduled._repeater)
                 ical_entries.append(_construct_vevent(
                     now_str, start, None, summary, description,
-                    categories.union({SCHEDULED}), rrule=rrule, is_dayevent=True))
+                    categories.union({SCHEDULED}), rrule=rrule, is_dayevent=True, location=location))
         if DEADLINE in include_types:
             n_deadline = node.body.count(DEADLINE)
             if n_deadline > 0:
@@ -319,7 +322,7 @@ END:VTIMEZONE"""
                 rrule = _encode_rrule(node.deadline._repeater)
                 ical_entries.append(_construct_vevent(
                     now_str, start, None, summary, description,
-                    categories.union({DEADLINE}), rrule=rrule, is_dayevent=True))
+                    categories.union({DEADLINE}), rrule=rrule, is_dayevent=True, location=location))
         if TIMESTAMP in include_types:
             datelist = node.get_timestamps(active=True, point=True)
             for d in datelist:
@@ -329,7 +332,7 @@ END:VTIMEZONE"""
                 rrule = _encode_rrule(d._repeater)
                 ical_entries.append(_construct_vevent(
                     now_str, start, end, summary, description,
-                    categories.union({TIMESTAMP}), rrule=rrule, is_dayevent=is_dayevent))
+                    categories.union({TIMESTAMP}), rrule=rrule, is_dayevent=is_dayevent, location=location))
             rangelist = node.get_timestamps(active=True, range=True)
             for d in rangelist:
                 start = _encode_date(d.start)
@@ -337,7 +340,7 @@ END:VTIMEZONE"""
                 rrule = _encode_rrule(d._repeater)
                 ical_entries.append(_construct_vevent(
                     now_str, start, end, summary, description,
-                    categories.union({"TIMESTAMP"}), rrule=rrule))
+                    categories.union({"TIMESTAMP"}), rrule=rrule, location=location))
         if CLOCK in include_types:
             for d in node.clock:
                 start = _encode_date(d.start)
@@ -346,7 +349,7 @@ END:VTIMEZONE"""
                 end = _encode_date(d.end)
                 ical_entries.append(_construct_vevent(
                     now_str, start, end, summary, description,
-                    categories.union({CLOCK})))
+                    categories.union({CLOCK}), location=location))
                 assert d._repeater is None
         if BIRTHDAY in include_types:
             if node.properties.get("BIRTHDAY"):
@@ -359,7 +362,7 @@ END:VTIMEZONE"""
                 start = start.strftime("%Y%m%d")
                 ical_entries.append(_construct_vevent(
                     now_str, start, None, '{} Birthday'.format(summary), description,
-                    categories.union({BIRTHDAY}), rrule=rrule, is_dayevent=True))
+                    categories.union({BIRTHDAY}), rrule=rrule, is_dayevent=True, location=location))
         if DIARY in include_types:
             diaries = _node_get_diaries(node)
             for diary in diaries:
@@ -395,7 +398,7 @@ END:VTIMEZONE"""
 
                 entry = _construct_vevent(
                     now_str, startt, endt, summary, description,
-                    categories.union({'REGULAR'}), rrule=rrule, tzprefix=mytimezoneprefix)
+                    categories.union({'REGULAR'}), rrule=rrule, tzprefix=mytimezoneprefix, location=location)
                 ical_entries.append(entry)
 
 
